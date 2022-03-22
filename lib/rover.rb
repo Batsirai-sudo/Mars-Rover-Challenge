@@ -17,7 +17,7 @@ class Rover
     @inputs = Input.new
     @current_rover = 1
     plateau_coordinates = @inputs.plateau_coordinates
-
+    @coordinates_data.upper_plateau_coordinates(plateau_coordinates)
   end
 
   def run
@@ -25,7 +25,6 @@ class Rover
     rover_position = @inputs.rover_position
     rover_instructions = @inputs.rover_instructions
 
-    @coordinates_data.upper_plateau_coordinates(plateau_coordinates)
     @coordinates_data.cartisan_coordinates(rover_position)
     @coordinates_data.instructions(rover_instructions)
     process_instructions
@@ -41,8 +40,7 @@ class Rover
     print_output
   end
 
-  #
-  # # method to execute individual instruction feed by the user in the terminal
+  # method to execute individual instruction feed by the user in the terminal
   def execute_each_instructions(instruction)
 
     x, y, position_compass_point = @coordinates_data.cartisan_coordinates
