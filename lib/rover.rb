@@ -4,60 +4,66 @@ require_relative 'input'
 require_relative 'data'
 require_relative 'service'
 
-class Rover < Input
+# Rover class Object
+class Rover
   attr_accessor :current_rover
 
   include Service
 
   def initialize
     super
+    # instantiate the objects
+    @coordinates_data = CoordinatesData.new
+    @inputs = Input.new
     @current_rover = 1
-    @data = Data.new
-    @data.set_upper_plateau_coordinates getPlateauCoordinates
+    plateau_coordinates = @inputs.plateau_coordinates
+
   end
 
-  # method for driving the rover by getting all the necessary inputs
-  def driveRover
-    inputs = roverInputs
-    @data.set_cartisan_coordinates inputs[0][0], inputs[0][1]
-    @data.set_compass_point inputs[0][2]
-    @data.set_instructions inputs[1]
-    getInstructions
+  def run
+    # Get the inputs entered by user
+    rover_position = @inputs.rover_position
+    rover_instructions = @inputs.rover_instructions
+
+    @coordinates_data.upper_plateau_coordinates(plateau_coordinates)
+    @coordinates_data.cartisan_coordinates(rover_position)
+    @coordinates_data.instructions(rover_instructions)
+    process_instructions
   end
 
-  # running the loop for the instruction array to tell rover what to do
-  def getInstructions
-
+  # # running the loop for the instruction array to tell rover what to do
+  def process_instructions
     catch :invalid_instruction do
-      @data.getInstructions.each do |instruction|
-        throw :invalid_instruction unless  executeRoverInstructions instruction.upcase
+      @coordinates_data.instructions.each do |instruction|
+        throw :invalid_instruction unless execute_each_instructions(instruction.upcase)
       end
     end
-    displayOutput
+    print_output
   end
-  
-  # method to execute individual instruction feed by the user in the terminal
-  def executeRoverInstructions instruction
 
-    x, y, position_compass_point = @data.getCoordinates
+  #
+  # # method to execute individual instruction feed by the user in the terminal
+  def execute_each_instructions(instruction)
+
+    x, y, position_compass_point = @coordinates_data.cartisan_coordinates
 
     case instruction
     when 'L'
-      @data.set_compass_point spin_left position_compass_point
+      @coordinates_data.compass_point(spin_left(position_compass_point))
     when 'R'
-      @data.set_compass_point spin_right position_compass_point
+      @coordinates_data.compass_point(spin_right(position_compass_point))
     when 'M'
-      x, y = move x, y, position_compass_point
-      @data.set_cartisan_coordinates x, y 
+      x, y = move(x, y, position_compass_point)
+      @coordinates_data.cartisan_coordinates([x, y, position_compass_point])
     else
-      puts generateError 'instructions', instruction
+      puts generate_error('instructions error', instruction)
       exit
     end
   end
 
   # displaying the expected output after the whole processes are done
-  def displayOutput
-    x, y, position_compass_point = @data.getCoordinates
+  def print_output
+    x, y, position_compass_point = @coordinates_data.cartisan_coordinates
     puts '-----------------------------------------------'
     puts "Expected Output:     #{x} #{y} #{position_compass_point}"
     puts '-----------------------------------------------'
@@ -67,7 +73,7 @@ class Rover < Input
       exit if gets.upcase.include?('YES')
     end
     @current_rover += 1
-    driveRover
+    run
   end
 end
 

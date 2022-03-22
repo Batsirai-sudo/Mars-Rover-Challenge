@@ -2,73 +2,83 @@
 require_relative 'data'
 require_relative 'service'
 
-class Validation < Data
-  attr_accessor :upper_coordinate, :position_coordinate
+# input validation class
+class Validation
 
-  # include Service module which contains some methods we want to
-  # extend into validation class
+  # include Service module which contains some methods we want to extend into validation class
   include Service
 
+  def initialize
+    @coordinates_data = CoordinatesData.new
+  end
   # validation method for the input the user type in console
-  def inputValidation validation_type, input
+
+  def input_validation(validation_type, input)
 
     case validation_type
     when 'upper coordinates'
-      upper_coordinate = clearEmpty input
 
-      upper_coordinate.find do |el|
-        isValid = Integer el rescue false
-        unless isValid
-          puts generateError 'arguments'
-          exit
-        end
-      end
+      upper_coordinate = clear_white_spaces(input)
+      validate_upper_coordinates(upper_coordinate)
 
-      checkInputLength 2, upper_coordinate.length
-      upper_coordinate
     when 'position coordinates'
-      position_coordinate = clearEmpty input
 
-      upper_coordinate = getUpperPlateauCoordinates
-      checkInputLength 3, position_coordinate.length
+      position_coordinates = clear_white_spaces(input)
+      validate_position_coordinates(position_coordinates)
 
-      x_coordinate = position_coordinate[0].to_i.between? 0, upper_coordinate[0]  rescue false
-      y_coordinate = position_coordinate[1].to_i.between? 0, upper_coordinate[1]  rescue false
-      compass_point = 'N S E W'.include? position_coordinate[2].upcase  rescue false
-
-      unless compass_point && x_coordinate && y_coordinate
-        puts generateError 'arguments'
-        exit
-      end
-
-      upperCase position_coordinate
     when 'instructions'
-      upperCase clearEmpty input
+      upper_case(clear_white_spaces(input))
     end
   end
 
-  # checking the user input characters length if user supplied more
-  # than or less than the required
-  def checkInputLength requiredLength, inputLength
+  # checking the user input characters length if user supplied more than or less than the required
 
-    if requiredLength > inputLength
-      puts generateError 'few arguments',[requiredLength,inputLength]
+  def check_input_length(required_length, input_length)
+
+    if required_length > input_length
+      puts generate_error('few arguments', [required_length, input_length])
       exit
-    elsif requiredLength < inputLength
-      puts generateError 'many arguments',[requiredLength,inputLength]
+    elsif required_length < input_length
+      puts generate_error('many arguments', [required_length, input_length])
       exit
     end
 
   end
 
-  # method for clearing spaces that the user entered in console
-  def clearEmpty data
-    return data.join(' ').split
+  # # method for clearing spaces that the user entered in console
+  def clear_white_spaces(data)
+    data.join(' ').split
   end
 
-  #Transforming the user input to uppercase if the entered value was small letter
-  def upperCase data
+  # # Transforming the user input to uppercase if the entered value was small letter
+  def upper_case(data)
     data.map &:upcase
   end
 
+  def match_regex(el)
+    if el =~ /^([0-9])$/
+      true
+    else
+      false
+    end
+  end
+
+  def validate_upper_coordinates(data)
+    data.find do |el|
+      unless match_regex(el)
+        puts generate_error('invalid arguments')
+        exit
+      end
+    end
+    check_input_length(2, data.length)
+    return data
+  end
+
+  def validate_position_coordinates(data)
+    upper_coordinate = @coordinates_data.upper_plateau_coordinates
+    check_input_length(3, data.length)
+    upper_case(data)
+  end
+
 end
+
